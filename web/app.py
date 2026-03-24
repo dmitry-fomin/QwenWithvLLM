@@ -14,13 +14,22 @@ import time
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, File, Form, UploadFile, Request
+import httpx
+from fastapi import FastAPI, File, Form, UploadFile, Request, Body
 from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from client.vllm_client import VLMClient
+
+
+# ============================================================
+# Настройки vLLM (прокси)
+# ============================================================
+
+VLLM_BASE_URL = "http://localhost:8000"
+vllm_client = httpx.AsyncClient(base_url=VLLM_BASE_URL, timeout=300.0)
 
 
 # ============================================================
@@ -123,6 +132,87 @@ async def list_models():
             return resp.json()
     except Exception as e:
         return {"error": str(e)}
+
+
+# ============================================================
+# OpenAI Совместимость (Прокси)
+# ============================================================
+
+@app.post("/api/generate")
+@app.post("/v1/chat/completions")
+async def openai_proxy(request: Request):
+    """
+    Проксирует запрос к vLLM OpenAI API.
+    Поддерживает стандартный формат OpenAI и стриминг.
+    """
+    # Получаем тело запроса
+    body = await request.json()
+    
+    # Извлекаем заголовки (кроме хоста и длины контента)
+    headers = dict(request.headers)
+    headers.pop("host", None)
+    headers.pop("content-length", None)
+    
+    # Проверяем параметр stream
+    is_streaming = body.get("stream", False)
+    
+    # Отправляем запрос к vLLM
+    try:
+        if is_streaming:
+            async def stream_generator():
+                async with vllm_client.stream(
+                    "POST", 
+                    "/v1/chat/completions", 
+                    json=body, 
+                    headers=headers
+                ) as response:
+                    async for chunk in response.aiter_bytes():
+                        yield chunk
+            
+            return StreamingResponse(
+                stream_generator(),
+                media_type="text/event-stream"
+            )
+        else:
+            response = await vllm_client.post(
+                "/v1/chat/completions",
+                json=body,
+                headers=headers
+            )
+            return JSONResponse(
+                content=response.json(),
+                status_code=response.status_code
+            )
+            
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"vLLM server error: {str(e)}", "type": "proxy_error"},
+            status_code=500
+        )
+
+
+@app.post("/v1/completions")
+async def completions_proxy(request: Request):
+    """Аналогичный прокси для legacy completions API."""
+    body = await request.json()
+    headers = dict(request.headers)
+    headers.pop("host", None)
+    headers.pop("content-length", None)
+    
+    is_streaming = body.get("stream", False)
+    
+    try:
+        if is_streaming:
+            async def stream_generator():
+                async with vllm_client.stream("POST", "/v1/completions", json=body, headers=headers) as response:
+                    async for chunk in response.aiter_bytes():
+                        yield chunk
+            return StreamingResponse(stream_generator(), media_type="text/event-stream")
+        else:
+            response = await vllm_client.post("/v1/completions", json=body, headers=headers)
+            return JSONResponse(content=response.json(), status_code=response.status_code)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 
 # ============================================================

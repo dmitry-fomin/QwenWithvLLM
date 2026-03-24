@@ -7,6 +7,8 @@
 
 ### FastAPI приложение (`web/app.py`)
 - `POST /api/analyze` — основной endpoint, принимает prompt + image (file/URL)
+- `POST /api/generate` — OpenAI-совместимый эндпоинт (прокси к vLLM)
+- `POST /v1/chat/completions` — стандартный путь OpenAI
 - `GET /api/health` — проверка доступности vLLM
 - `GET /api/models` — список моделей на сервере
 - `GET /` — HTML страница
