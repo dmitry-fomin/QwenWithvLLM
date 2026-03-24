@@ -67,18 +67,32 @@ echo "Starting vLLM API server..."
 echo "Base URL will be: http://0.0.0.0:8000"
 echo ""
 
-# Запуск vLLM с параметрами из конфига
-python3 -m vllm.entrypoints.openai.api_server \
-    --model "$RESOLVED_MODEL" \
-    --served-model-name "$MODEL_NAME" \
-    --tensor-parallel-size $TENSOR_PARALLEL_SIZE \
-    --max-model-len $MAX_MODEL_LEN \
-    --gpu-memory-utilization $GPU_MEMORY_UTILIZATION \
-    --dtype $DTYPE \
-    --host 0.0.0.0 \
-    --port 8000 \
-    --log-level INFO \
-    $EXTRA_ARGS
+# Строим аргументы как bash-массив (решает проблему с JSON и кавычками в EXTRA_ARGS)
+declare -a CMD_ARGS=(
+    --model "$RESOLVED_MODEL"
+    --served-model-name "$MODEL_NAME"
+    --tensor-parallel-size $TENSOR_PARALLEL_SIZE
+    --max-model-len $MAX_MODEL_LEN
+    --gpu-memory-utilization $GPU_MEMORY_UTILIZATION
+    --dtype $DTYPE
+    --host 0.0.0.0
+    --port 8000
+    --log-level INFO
+)
+
+# MM_IMAGE_LIMIT — отдельная переменная конфига (не в EXTRA_ARGS)
+# Позволяет корректно передать JSON без проблем с экранированием
+if [ -n "$MM_IMAGE_LIMIT" ]; then
+    CMD_ARGS+=(--limit-mm-per-prompt "{\"image\": $MM_IMAGE_LIMIT}")
+fi
+
+# Остальные флаги из EXTRA_ARGS (простые флаги без JSON-значений)
+if [ -n "$EXTRA_ARGS" ]; then
+    read -ra EXTRA_ARGS_ARRAY <<< "$EXTRA_ARGS"
+    CMD_ARGS+=("${EXTRA_ARGS_ARRAY[@]}")
+fi
+
+python3 -m vllm.entrypoints.openai.api_server "${CMD_ARGS[@]}"
 
 # Примечание: Скрипт остаётся в foreground. Для работы в background:
 # bash scripts/start_vllm.sh configs/qwen3vl_8b.env &
