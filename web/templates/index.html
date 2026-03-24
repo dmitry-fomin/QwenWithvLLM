@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLM Web UI</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid #2a2a2a;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #555;
+        }
+
+        .status-dot.ok { background: #4ade80; }
+        .status-dot.error { background: #f87171; }
+
+        .panel {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .settings-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #4f6ef7;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Image upload */
+        .upload-area {
+            border: 2px dashed #333;
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            position: relative;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #4f6ef7;
+            background: rgba(79, 110, 247, 0.05);
+        }
+
+        .upload-area input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-text {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .upload-text strong {
+            color: #4f6ef7;
+        }
+
+        .preview-container {
+            margin-top: 12px;
+            display: none;
+        }
+
+        .preview-container.visible {
+            display: block;
+        }
+
+        .preview-container img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .preview-container .remove-btn {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 12px;
+            background: #333;
+            border: none;
+            border-radius: 6px;
+            color: #e0e0e0;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .preview-container .remove-btn:hover {
+            background: #f87171;
+            color: #fff;
+        }
+
+        /* OR divider */
+        .or-divider {
+            text-align: center;
+            color: #555;
+            font-size: 12px;
+            margin: 12px 0;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn:active { transform: scale(0.98); }
+
+        .btn-primary {
+            background: #4f6ef7;
+            color: #fff;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .btn-primary:hover { background: #3b5ae0; }
+        .btn-primary:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+        /* Quick prompts */
+        .quick-prompts {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .quick-prompt {
+            padding: 6px 12px;
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 20px;
+            color: #ccc;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-prompt:hover {
+            background: #2a2a4a;
+            border-color: #4f6ef7;
+            color: #fff;
+        }
+
+        /* Result */
+        .result-panel {
+            display: none;
+        }
+
+        .result-panel.visible {
+            display: block;
+        }
+
+        .result-content {
+            background: #111;
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .result-meta {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 24px;
+            color: #888;
+        }
+
+        .loading.visible { display: block; }
+
+        .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #333;
+            border-top-color: #4f6ef7;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-msg {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: #f87171;
+            font-size: 13px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .error-msg.visible { display: block; }
+
+        /* Copy button */
+        .copy-btn {
+            float: right;
+            padding: 4px 10px;
+            background: #333;
+            border: none;
+            border-radius: 6px;
+            color: #ccc;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .copy-btn:hover { background: #444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>VLM Web UI</h1>
+            <div class="status">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Connecting...</span>
+            </div>
+        </header>
+
+        <!-- Settings -->
+        <div class="panel">
+            <div class="panel-title">Settings</div>
+            <div class="settings-row">
+                <div>
+                    <label>vLLM Server</label>
+                    <input type="text" id="serverUrl" value="http://localhost:8000/v1">
+                </div>
+                <div>
+                    <label>Model</label>
+                    <input type="text" id="modelName" value="qwen3-vl-8b">
+                </div>
+            </div>
+            <div class="settings-row">
+                <div>
+                    <label>Max Tokens</label>
+                    <input type="number" id="maxTokens" value="2048" min="1" max="16384">
+                </div>
+                <div>
+                    <label>Temperature</label>
+                    <input type="number" id="temperature" value="0.3" min="0" max="2" step="0.1">
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Upload -->
+        <div class="panel">
+            <div class="panel-title">Image</div>
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="imageInput" accept="image/*">
+                <div class="upload-text">
+                    <strong>Click to upload</strong> or drag & drop<br>
+                    PNG, JPG, GIF, WebP
+                </div>
+            </div>
+            <div class="preview-container" id="previewContainer">
+                <img id="previewImage" alt="Preview">
+                <br>
+                <button class="remove-btn" id="removeImage">Remove image</button>
+            </div>
+            <div class="or-divider">— or paste URL —</div>
+            <input type="text" id="imageUrl" placeholder="https://example.com/image.jpg">
+        </div>
+
+        <!-- Prompt -->
+        <div class="panel">
+            <div class="panel-title">Prompt</div>
+            <div class="quick-prompts">
+                <span class="quick-prompt" data-prompt="Extract all text from this image.">OCR</span>
+                <span class="quick-prompt" data-prompt="Describe this image in detail.">Describe</span>
+                <span class="quick-prompt" data-prompt="List all interactive UI elements visible in this image with their labels and locations.">UI Elements</span>
+                <span class="quick-prompt" data-prompt="What application is shown? What is the user doing?">App Analysis</span>
+                <span class="quick-prompt" data-prompt="Translate all text in this image to Russian.">Translate to RU</span>
+            </div>
+            <textarea id="promptInput" placeholder="Enter your prompt..." rows="3"></textarea>
+            <button class="btn btn-primary" id="analyzeBtn">Analyze</button>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 12px;">Analyzing...</p>
+        </div>
+
+        <!-- Error -->
+        <div class="error-msg" id="errorMsg"></div>
+
+        <!-- Result -->
+        <div class="panel result-panel" id="resultPanel">
+            <div class="panel-title">
+                Result
+                <button class="copy-btn" id="copyBtn">Copy</button>
+            </div>
+            <div class="result-content" id="resultContent"></div>
+            <div class="result-meta" id="resultMeta"></div>
+        </div>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+
+        // Elements
+        const uploadArea = $('uploadArea');
+        const imageInput = $('imageInput');
+        const previewContainer = $('previewContainer');
+        const previewImage = $('previewImage');
+        const removeImageBtn = $('removeImage');
+        const imageUrlInput = $('imageUrl');
+        const promptInput = $('promptInput');
+        const analyzeBtn = $('analyzeBtn');
+        const loading = $('loading');
+        const errorMsg = $('errorMsg');
+        const resultPanel = $('resultPanel');
+        const resultContent = $('resultContent');
+        const resultMeta = $('resultMeta');
+        const statusDot = $('statusDot');
+        const statusText = $('statusText');
+        const copyBtn = $('copyBtn');
+
+        let selectedFile = null;
+
+        // Drag & drop
+        uploadArea.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        imageInput.addEventListener('change', e => {
+            if (e.target.files.length) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            const reader = new FileReader();
+            reader.onload = e => {
+                previewImage.src = e.target.result;
+                previewContainer.classList.add('visible');
+                uploadArea.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        removeImageBtn.addEventListener('click', () => {
+            selectedFile = null;
+            imageInput.value = '';
+            previewContainer.classList.remove('visible');
+            uploadArea.style.display = 'block';
+        });
+
+        // Quick prompts
+        document.querySelectorAll('.quick-prompt').forEach(btn => {
+            btn.addEventListener('click', () => {
+                promptInput.value = btn.dataset.prompt;
+                promptInput.focus();
+            });
+        });
+
+        // Analyze
+        analyzeBtn.addEventListener('click', analyze);
+        promptInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                analyze();
+            }
+        });
+
+        async function analyze() {
+            const prompt = promptInput.value.trim();
+            if (!prompt) {
+                promptInput.focus();
+                return;
+            }
+
+            analyzeBtn.disabled = true;
+            loading.classList.add('visible');
+            errorMsg.classList.remove('visible');
+            resultPanel.classList.remove('visible');
+
+            const formData = new FormData();
+            formData.append('prompt', prompt);
+            formData.append('model_name', $('modelName').value);
+            formData.append('server_url', $('serverUrl').value);
+            formData.append('max_tokens', $('maxTokens').value);
+            formData.append('temperature', $('temperature').value);
+
+            if (selectedFile) {
+                formData.append('image', selectedFile);
+            }
+
+            const url = imageUrlInput.value.trim();
+            if (url) {
+                formData.append('image_url', url);
+            }
+
+            try {
+                const resp = await fetch('/api/analyze', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await resp.json();
+
+                if (data.error) {
+                    errorMsg.textContent = data.error;
+                    errorMsg.classList.add('visible');
+                } else {
+                    resultContent.textContent = data.result;
+                    resultMeta.textContent = `Model: ${data.model} | Time: ${data.elapsed_seconds}s`;
+                    resultPanel.classList.add('visible');
+                }
+            } catch (err) {
+                errorMsg.textContent = `Connection error: ${err.message}`;
+                errorMsg.classList.add('visible');
+            } finally {
+                analyzeBtn.disabled = false;
+                loading.classList.remove('visible');
+            }
+        }
+
+        // Copy
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(resultContent.textContent);
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+        });
+
+        // Health check
+        async function checkHealth() {
+            try {
+                const resp = await fetch('/api/health');
+                const data = await resp.json();
+                if (data.vllm === 'ok') {
+                    statusDot.className = 'status-dot ok';
+                    statusText.textContent = 'vLLM connected';
+                } else {
+                    statusDot.className = 'status-dot error';
+                    statusText.textContent = 'vLLM unavailable';
+                }
+            } catch {
+                statusDot.className = 'status-dot error';
+                statusText.textContent = 'Web UI only';
+            }
+        }
+
+        checkHealth();
+        setInterval(checkHealth, 15000);
+    </script>
+</body>
+</html>

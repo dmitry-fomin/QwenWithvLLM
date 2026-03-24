@@ -1,0 +1,34 @@
+# vLLM (nightly для Qwen3-VL и последних оптимизаций)
+# Установите через: uv pip install -U vllm --torch-backend=auto --extra-index-url https://wheels.vllm.ai/nightly
+
+# Или стабильную версию:
+vllm>=0.6.3
+
+# PyTorch (обычно входит с vLLM, но может потребоваться явная установка)
+torch>=2.1.0
+torchvision>=0.16.0
+
+# HuggingFace
+transformers>=4.51.0
+huggingface_hub>=0.24.0
+tokenizers>=0.19.0
+accelerate>=0.30.0
+
+# Утилиты для vision
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# Специфично для InternVL и других моделей
+sentencepiece>=0.1.99
+einops>=0.7.0
+timm>=0.9.0
+
+# Ray (для тензорного параллелизма в vLLM)
+ray>=2.9.0
+
+# API сервер
+fastapi>=0.110.0
+uvicorn>=0.27.0
+
+# Логирование
+pydantic>=2.0.0

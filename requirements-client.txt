@@ -1,0 +1,26 @@
+# Клиентские зависимости для отправки запросов к vLLM серверу
+# Можно установить отдельно от серверных зависимостей
+
+# OpenAI SDK (совместимо с vLLM OpenAI API)
+openai>=1.30.0
+
+# HTTP клиенты
+requests>=2.31.0
+httpx>=0.27.0
+aiohttp>=3.9.0
+
+# Работа с изображениями
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# Захват скриншотов (для tools/screenshot.py)
+mss>=9.0.0
+
+# Web UI (для web/app.py)
+fastapi>=0.110.0
+uvicorn>=0.27.0
+jinja2>=3.1.0
+python-multipart>=0.0.9
+
+# Telegram бот (для bot/telegram_bot.py)
+python-telegram-bot>=21.0

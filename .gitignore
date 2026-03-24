@@ -1,0 +1,51 @@
+# Environment
+.env
+.env.local
+.env.*.local
+venv/
+env/
+ENV/
+.venv
+
+# Models & data
+models/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.onnx
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Cache
+cache/
+.cache/
+.huggingface/
+.pytest_cache/
+.vLLM_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+wandb/
+
+# Test results
+.coverage
+htmlcov/
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+test_*.png
+test_screenshot.png
