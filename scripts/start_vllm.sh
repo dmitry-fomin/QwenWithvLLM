@@ -58,6 +58,11 @@ else
     RESOLVED_MODEL="$MODEL_PATH"
 fi
 
+# Настройка путей к CUDA библиотекам (решает: libcudart.so.12: cannot open shared object file)
+CUDA_LIB_PATHS="/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:/usr/local/cuda-12.4/lib64"
+export LD_LIBRARY_PATH="${CUDA_LIB_PATHS}:${LD_LIBRARY_PATH:-}"
+export CUDA_HOME="${CUDA_HOME:-/usr/local/cuda}"
+
 echo "Starting vLLM API server..."
 echo "Base URL will be: http://0.0.0.0:8000"
 echo ""

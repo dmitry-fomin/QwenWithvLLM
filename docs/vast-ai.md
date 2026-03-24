@@ -72,7 +72,7 @@ bash scripts/setup_server.sh
 ### Скачай модель
 
 ```bash
-export HF_TOKEN="hf_xxxxxxxxxxxxxxxx"
+export HF_TOKEN="hf_..."
 bash scripts/download_model.sh Qwen/Qwen3-VL-8B-Instruct
 ```
 
@@ -190,6 +190,20 @@ rm -rf ~/.cache/huggingface/hub/models--Qwen--Qwen2.5-VL-7B-Instruct
 ### Сервер запустился, но клиент не подключается
 
 Проверь что SSH-туннель активен — соединение должно висеть в терминале. Если закрыл его, запусти снова.
+
+### ImportError: libcudart.so.12: cannot open shared object file
+
+CUDA Runtime не найдена в `LD_LIBRARY_PATH`. Это уже исправлено в `scripts/start_vllm.sh`, но если запускаешь vLLM вручную:
+
+```bash
+export LD_LIBRARY_PATH="/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:/usr/local/cuda-12.4/lib64:$LD_LIBRARY_PATH"
+python3 -m vllm.entrypoints.openai.api_server ...
+```
+
+Или найди где лежит библиотека:
+```bash
+find / -name "libcudart.so.12" 2>/dev/null
+```
 
 ### "CUDA out of memory" при старте
 
