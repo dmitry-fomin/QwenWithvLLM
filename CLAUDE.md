@@ -27,6 +27,7 @@
 - [docs/web-ui.md](docs/web-ui.md) — Web интерфейс
 - [docs/telegram-bot.md](docs/telegram-bot.md) — Telegram бот
 - [docs/monitoring.md](docs/monitoring.md) — Мониторинг и логирование
+- [docs/vast-ai.md](docs/vast-ai.md) — Запуск на арендованном GPU (Vast.ai)
 
 ## Агенты
 - [agents/python.md](agents/python.md) — Python backend
