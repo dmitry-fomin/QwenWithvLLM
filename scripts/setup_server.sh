@@ -55,14 +55,18 @@ echo ""
 echo "=== Installing uv (fast pip replacement) ==="
 pip install uv
 
-# vLLM nightly для поддержки Qwen3-VL и последних оптимизаций
+# Шаг 1: PyTorch с явной версией CUDA 12.4
+# ВАЖНО: не используй --torch-backend=auto — это может поставить torch под CUDA 13,
+# которая несовместима с vLLM nightly (скомпилирован под CUDA 12, ищет libcudart.so.12).
+# torch cu124 бандлит libcudart.so.12 внутри пакета — работает даже если в системе CUDA 13.
 echo ""
-echo "=== Installing vLLM (nightly for Qwen3-VL support) ==="
-echo "Выполняю: uv pip install -U vllm --torch-backend=auto --extra-index-url https://wheels.vllm.ai/nightly"
-uv pip install -U vllm --torch-backend=auto --extra-index-url https://wheels.vllm.ai/nightly
+echo "=== Installing PyTorch 2.5.1 with CUDA 12.4 (bundled libcudart.so.12) ==="
+pip install torch==2.5.1 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 
-# Или стабильная версия (если nightly не нужна):
-# uv pip install -U vllm
+# Шаг 2: vLLM nightly для поддержки Qwen3-VL
+echo ""
+echo "=== Installing vLLM nightly (Qwen3-VL support) ==="
+pip install -U vllm --extra-index-url https://wheels.vllm.ai/nightly
 
 # Зависимости
 echo ""

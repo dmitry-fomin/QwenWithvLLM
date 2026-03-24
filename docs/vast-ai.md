@@ -29,17 +29,19 @@ pytorch/pytorch:2.5.1-cuda12.4-cudnn9-devel
 ```
 
 Почему именно этот:
-- Уже содержит CUDA 12.4 + PyTorch
+- Содержит CUDA 12.4 + PyTorch — именно под эту версию собран vLLM
 - Python 3.10+ включён
-- Совместим с vLLM nightly
 - Достаточно места для pip-установки зависимостей
 
-Альтернатива если нет этого образа:
+Альтернатива:
 ```
 nvidia/cuda:12.4.1-devel-ubuntu22.04
 ```
 
-**Не используй** `vllm/vllm-openai` — там стабильная версия vLLM, а для Qwen3-VL нужен nightly.
+> [!CAUTION]
+> **Не используй `vastai/pytorch_cuda-13.x`** — этот образ содержит CUDA 13, а vLLM nightly скомпилирован под CUDA 12 (`libcudart.so.12`). Запуск упадёт с `ImportError: libcudart.so.12: cannot open shared object file`.
+>
+> **Не используй** `vllm/vllm-openai` — там старая стабильная версия, несовместимая с Qwen3-VL.
 
 ---
 
