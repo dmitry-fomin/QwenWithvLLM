@@ -77,7 +77,7 @@ declare -a CMD_ARGS=(
     --dtype $DTYPE
     --host 0.0.0.0
     --port 8000
-    --log-level INFO
+    --uvicorn-log-level INFO
 )
 
 # MM_IMAGE_LIMIT — отдельная переменная конфига (не в EXTRA_ARGS)
