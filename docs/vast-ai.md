@@ -8,13 +8,13 @@ Vast.ai — площадка аренды GPU. Здесь описано как 
 
 Подбирай GPU под модель по VRAM:
 
-| Модель | VRAM | Что арендовать на Vast.ai |
-|---|---|---|
-| Qwen3-VL-8B (BF16) | ~17 GB | 1x RTX 4090 (24 GB) |
-| Qwen2.5-VL-7B (BF16) | ~15 GB | 1x RTX 4090 (24 GB) |
-| Pixtral-12B (BF16) | ~25 GB | 1x A100 40GB SXM |
+| Модель                 | VRAM   | Что арендовать на Vast.ai     |
+|------------------------|--------|-------------------------------|
+| Qwen3-VL-8B (BF16)     | ~17 GB | 1x RTX 4090 (24 GB)           |
+| Qwen2.5-VL-7B (BF16)   | ~15 GB | 1x RTX 4090 (24 GB)           |
+| Pixtral-12B (BF16)     | ~25 GB | 1x A100 40GB SXM              |
 | InternVL2.5-26B (BF16) | ~52 GB | 2x A100 40GB или 1x A100 80GB |
-| Qwen2.5-VL-72B AWQ | ~40 GB | 1x A100 80GB или 2x A100 40GB |
+| Qwen2.5-VL-72B AWQ     | ~40 GB | 1x A100 80GB или 2x A100 40GB |
 
 > Конфиги с `TENSOR_PARALLEL_SIZE=2` требуют 2 GPU. При аренде одной GPU измени этот параметр на `1` в соответствующем `.env` файле.
 
@@ -66,7 +66,7 @@ cd QwenWithvLLM
 ### Установка зависимостей
 
 ```bash
-bash scripts/setup_server.sh
+./scripts/setup_server.sh
 ```
 
 Это создаст venv, установит vLLM nightly и все зависимости. Займёт 5–10 минут.
@@ -75,7 +75,12 @@ bash scripts/setup_server.sh
 
 ```bash
 export HF_TOKEN="hf_..."
-bash scripts/download_model.sh Qwen/Qwen3-VL-8B-Instruct
+
+./scripts/download_model.sh Qwen/Qwen3-VL-8B-Instruct
+
+./scripts/download_model.sh OpenGVLab/InternVL2_5-26B
+
+./scripts/download_model.sh Qwen/Qwen2.5-VL-72B-Instruct-AWQ	
 ```
 
 Токен получи на [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens).
@@ -85,7 +90,12 @@ bash scripts/download_model.sh Qwen/Qwen3-VL-8B-Instruct
 
 ```bash
 tmux new -s vllm
-bash scripts/start_vllm.sh configs/qwen3vl_8b.env
+
+./scripts/start_vllm.sh configs/qwen3vl_8b.env
+
+./scripts/start_vllm.sh configs/internvl25_26b.env
+
+./scripts/start_vllm.sh configs/qwen25vl_72b_awq.env
 ```
 
 Жди строчку:
@@ -152,20 +162,20 @@ cp configs/qwen3vl_8b.env configs/qwen3vl_8b_single.env
 Или прямо в командной строке:
 ```bash
 sed -i 's/TENSOR_PARALLEL_SIZE=2/TENSOR_PARALLEL_SIZE=1/' configs/qwen3vl_8b.env
-bash scripts/start_vllm.sh configs/qwen3vl_8b.env
+./scripts/start_vllm.sh configs/qwen3vl_8b.env
 ```
 
 ---
 
 ## 7. Управление сессией
 
-| Задача | Команда |
-|---|---|
-| Открыть tmux сессию vllm | `tmux attach -t vllm` |
-| Остановить сервер | В tmux: `Ctrl+C` |
-| Переключить модель | `bash scripts/switch_model.sh configs/другой.env` |
-| Посмотреть GPU нагрузку | `watch -n1 nvidia-smi` |
-| Проверить логи | `tmux attach -t vllm` |
+| Задача                   | Команда                                        |
+|--------------------------|------------------------------------------------|
+| Открыть tmux сессию vllm | `tmux attach -t vllm`                          |
+| Остановить сервер        | В tmux: `Ctrl+C`                               |
+| Переключить модель       | `./scripts/switch_model.sh configs/другой.env` |
+| Посмотреть GPU нагрузку  | `watch -n1 nvidia-smi`                         |
+| Проверить логи           | `tmux attach -t vllm`                          |
 
 ---
 
@@ -219,5 +229,5 @@ find / -name "libcudart.so.12" 2>/dev/null
 # Пересоздай tmux сессию
 tmux kill-session -t vllm
 tmux new -s vllm
-bash scripts/start_vllm.sh configs/qwen3vl_8b.env
+./scripts/start_vllm.sh configs/qwen3vl_8b.env
 ```

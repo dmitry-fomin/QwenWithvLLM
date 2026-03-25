@@ -112,8 +112,47 @@ if [ -n "$EXTRA_ARGS" ]; then
     CMD_ARGS+=("${EXTRA_ARGS_ARRAY[@]}")
 fi
 
+# Проверка на флаг фонового режима (--bg)
+BACKGROUND=0
+NEW_ARGS=()
+for arg in "${CMD_ARGS[@]}"; do
+    if [ "$arg" == "--bg" ]; then
+        BACKGROUND=1
+    else
+        NEW_ARGS+=("$arg")
+    fi
+done
+
+# Если передан аргумент скрипту напрямую (не через CMD_ARGS в массиве, а как $2, $3...)
+# Но в текущей версии скрипта мы всё собираем в CMD_ARGS.
+# Добавим обработку --bg как первого или второго аргумента самого скрипта bash
+if [[ "$*" == *"--bg"* ]]; then
+    BACKGROUND=1
+fi
+
+if [ "$BACKGROUND" == "1" ]; then
+    LOG_FILE="vllm_${MODEL_NAME// /_}.log"
+    echo "🚀 Starting vLLM in background..."
+    echo "Log file: $LOG_FILE"
+    
+    # Рекурсивно вызываем тот же скрипт, но без флага --bg, через nohup
+    # Или просто запускаем python через nohup
+    nohup python3 -m vllm.entrypoints.openai.api_server "${CMD_ARGS[@]}" > "$LOG_FILE" 2>&1 &
+    
+    PID=$!
+    echo "vLLM started with PID: $PID"
+    echo "You can monitor logs with: tail -f $LOG_FILE"
+    echo ""
+    echo "To stop it, use: kill $PID"
+    exit 0
+fi
+
 python3 -m vllm.entrypoints.openai.api_server "${CMD_ARGS[@]}"
 
-# Примечание: Скрипт остаётся в foreground. Для работы в background:
-# bash scripts/start_vllm.sh configs/qwen3vl_8b.env &
-# Или используйте tmux/screen для отдельной сессии
+# Примечание: Скрипт по умолчанию остаётся в foreground. 
+# Для работы в фоне используйте флаг --bg:
+# bash scripts/start_vllm.sh configs/qwen3vl_8b.env --bg
+#
+# Или используйте tmux (если установлен на сервере):
+# tmux new -s vllm
+# bash scripts/start_vllm.sh configs/qwen3vl_8b.env
