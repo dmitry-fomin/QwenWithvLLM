@@ -63,6 +63,9 @@ CUDA_LIB_PATHS="/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:/usr/local/cuda-1
 export LD_LIBRARY_PATH="${CUDA_LIB_PATHS}:${LD_LIBRARY_PATH:-}"
 export CUDA_HOME="${CUDA_HOME:-/usr/local/cuda}"
 
+# Уменьшает фрагментацию GPU-памяти (рекомендация из PyTorch OOM ошибок)
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
 # Настройка vLLM движка (V1 всё еще экспериментальный для TP=4)
 # Если VLLM_USE_V1=0 (по умолчанию или из конфига), используется стабильный движок V0.
 export VLLM_USE_V1="${VLLM_USE_V1:-0}"
