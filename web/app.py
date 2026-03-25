@@ -113,7 +113,6 @@ async def analyze(
 @app.get("/api/health")
 async def health():
     """Проверка доступности vLLM сервера."""
-    import httpx
     try:
         async with httpx.AsyncClient(timeout=5.0) as http:
             resp = await http.get("http://localhost:8000/health")
@@ -125,7 +124,6 @@ async def health():
 @app.get("/api/models")
 async def list_models():
     """Список доступных моделей на vLLM."""
-    import httpx
     try:
         async with httpx.AsyncClient(timeout=5.0) as http:
             resp = await http.get("http://localhost:8000/v1/models")

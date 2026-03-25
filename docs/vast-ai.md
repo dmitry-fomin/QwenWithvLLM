@@ -59,7 +59,7 @@ nvidia/cuda:12.4.1-devel-ubuntu22.04
 ### Клонируй репо
 
 ```bash
-git clone https://github.com/твой-юзер/QwenWithvLLM.git
+git clone https://github.com/dmitry-fomin/QwenWithvLLM
 cd QwenWithvLLM
 ```
 
