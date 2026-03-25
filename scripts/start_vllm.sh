@@ -64,10 +64,23 @@ export LD_LIBRARY_PATH="${CUDA_LIB_PATHS}:${LD_LIBRARY_PATH:-}"
 export CUDA_HOME="${CUDA_HOME:-/usr/local/cuda}"
 
 # Настройка vLLM движка (V1 всё еще экспериментальный для TP=4)
+# Если VLLM_USE_V1=0 (по умолчанию или из конфига), используется стабильный движок V0.
 export VLLM_USE_V1="${VLLM_USE_V1:-0}"
 export VLLM_WORKER_MULTIPROC_METHOD=spawn
 
+if [ "$VLLM_USE_V1" == "1" ]; then
+    echo "Engine: vLLM V1 (Experimental/New)"
+else
+    echo "Engine: vLLM V0 (Stable/Classic)"
+fi
+echo ""
+
 echo "Starting vLLM API server..."
+if [ "$VLLM_USE_V1" == "1" ]; then
+    echo "Using experimental vLLM V1 engine"
+else
+    echo "Using stable vLLM V0 engine"
+fi
 echo "Base URL will be: http://0.0.0.0:8000"
 echo ""
 
