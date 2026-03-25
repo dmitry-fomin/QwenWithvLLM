@@ -63,6 +63,10 @@ CUDA_LIB_PATHS="/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:/usr/local/cuda-1
 export LD_LIBRARY_PATH="${CUDA_LIB_PATHS}:${LD_LIBRARY_PATH:-}"
 export CUDA_HOME="${CUDA_HOME:-/usr/local/cuda}"
 
+# Настройка vLLM движка (V1 всё еще экспериментальный для TP=4)
+export VLLM_USE_V1="${VLLM_USE_V1:-0}"
+export VLLM_WORKER_MULTIPROC_METHOD=spawn
+
 echo "Starting vLLM API server..."
 echo "Base URL will be: http://0.0.0.0:8000"
 echo ""
