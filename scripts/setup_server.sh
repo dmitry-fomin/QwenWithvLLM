@@ -66,7 +66,7 @@ pip install torch==2.5.1 torchvision torchaudio --index-url https://download.pyt
 # Шаг 2: vLLM nightly для поддержки Qwen3-VL
 echo ""
 echo "=== Installing vLLM nightly (Qwen3-VL support) ==="
-pip install -U vllm --extra-index-url https://wheels.vllm.ai/nightly
+pip install -U vllm==0.11.2
 
 # Зависимости
 echo ""
