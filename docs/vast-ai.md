@@ -80,7 +80,13 @@ export HF_TOKEN="hf_..."
 
 ./scripts/download_model.sh OpenGVLab/InternVL2_5-26B
 
-./scripts/download_model.sh Qwen/Qwen2.5-VL-72B-Instruct-AWQ	
+./scripts/download_model.sh Qwen/Qwen2.5-VL-72B-Instruct-AWQ
+
+./scripts/download_model.sh mistralai/Pixtral-12B-2409
+
+./scripts/download_model.sh Qwen/Qwen3-VL-30B-A3B-Instruct-FP8
+
+./scripts/download_model.sh RedHatAI/Mistral-Small-3.1-24B-Instruct-2503-quantized.w4a16
 ```
 
 Токен получи на [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens).
